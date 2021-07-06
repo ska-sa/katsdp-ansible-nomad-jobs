@@ -1,0 +1,16 @@
+---
+
+# This file is the host definitian and should be placed in host_vars.
+
+ansible_host: server-name
+ansible_user: user
+ansible_ssh_pass: password
+ansible_sudo_pass: password
+datacenter_name: 'dc1'
+nomad_server_enabled: true
+nomad_client_enabled: false
+nomad_cluster_jobs_present:
+  - redis
+  - traefik
+  - prometheus
+  - elasticsearch

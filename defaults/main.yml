@@ -1,0 +1,4 @@
+---
+
+nomad_cluster_jobs_present: []
+nomad_job_deployment_path: /opt/nomad/deploy

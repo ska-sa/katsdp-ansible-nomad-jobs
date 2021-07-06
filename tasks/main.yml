@@ -1,0 +1,9 @@
+---
+
+- include_tasks: deploy-job.yml
+  run_once: true
+  # test that the node is a Nomad server
+  when: nomad_server_enabled is defined and nomad_server_enabled
+  loop: "{{ nomad_cluster_jobs_present }}"
+  loop_control:
+    loop_var: job_set

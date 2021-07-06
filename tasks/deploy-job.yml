@@ -1,0 +1,34 @@
+---
+
+# This is called for every job_set.
+- name: load default variables from file
+  include_vars:
+    file: "{{ item }}"
+    name: job_vars
+  with_fileglob:
+    - "templates/{{ job_set }}/vars.yml"
+
+- name: set local variables
+  set_fact:
+    deploy_path: "{{ nomad_job_deployment_path }}/{{ job_set }}/"
+
+- name: create deployment directory
+  ansible.builtin.file:
+    path: "{{ deploy_path }}"
+    state: directory
+    mode: '0755'
+    recurse: true
+
+- name: load files into Consul K/V store
+  include_tasks: consul-kv.yml
+  with_fileglob:
+    - "templates/{{ job_set }}/consul.*"
+  loop_control:
+    loop_var: file_name 
+
+- name: run Nomad job files
+  include_tasks: run-job.yml
+  with_fileglob:
+    - "templates/{{ job_set }}/nomad.*.j2" # Can be either hcl or json
+  loop_control:
+    loop_var: file_name 
