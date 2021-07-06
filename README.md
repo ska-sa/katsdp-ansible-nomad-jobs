@@ -6,26 +6,26 @@ This role is associated with https://github.com/ska-sa/katsdp-ansible-collection
 ## Installation
 
 Initially install by checking out the source and using make.
-``
+```
 git clone https://github.com/ska-sa/katsdp-ansible-nomad-jobs.git
 cd katsdp-ansible-nomad-jobs
 make install
-``
+```
 
-Also, see [requirements.yml|examples/requirements.yml].
+Also, see [requirements.yml](examples/requirements.yml).
 
 ## Usage
 
-See [playbook.yml|examples/playbook.yml].
+See [playbook.yml](examples/playbook.yml).
 The role is only applied once per execution, if multiple Ansible targets are given it will only be run on the first suitable target.
 
 ### Variables
 The following variables control the deployment. Job Sets have variables that can be set, see vars.yml in job set folders.
 
-* nomad_server_enabled: This variable control if the job can run on a system. Default to false.
-* *nomad_cluster_jobs_present: List of Job Sets to add to the cluster. Default to [].
-* **nomad_job_deployment_path: Temporary working directory on server. Default to '/opt/nomad/deploy'.
-* datacenter_name: The name of the Nomad datacenter. This field is used in the Nomad job specifications.
+* **nomad_server_enabled**: This variable control if the job can run on a system. Default to false.
+* **nomad_cluster_jobs_present**: List of Job Sets to add to the cluster. Default to [].
+* **nomad_job_deployment_path**: Temporary working directory on server. Default to '/opt/nomad/deploy'.
+* **datacenter_name**: The name of the Nomad datacenter. This field is used in the Nomad job specifications.
 
 ## Job Set
 A job set is the configuration files to deploy jobs to Nomad.
@@ -34,7 +34,7 @@ Each Job Set is a directory in the templates directory of this repository.
 
 ### Nomad Job Set files
 Nomad job definition files as Ansible templates. These can be either HCL or JSON files.
-The file must have the following pattern "nomad.****.hcl.j2" or "nomad.*.json.j2".
+The file must have the following pattern `nomad.*.hcl.j2` or `nomad.*.json.j2`.
 Each of these files will be loaded into Nomad. The command `nomad job run <filename>` will be called on each file.
 Typically there will be one Nomad template per Job Set.
 
