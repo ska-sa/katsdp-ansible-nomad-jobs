@@ -1,0 +1,10 @@
+groups:
+- name: alert.rules
+  rules:
+  - alert: service_down
+    expr: up == 0
+  - alert: high_load
+    expr: node_load5 > count by(instance) (node_cpu_scaling_frequency_hertz)
+    annotations:
+      description: '{{ $labels.instance }} of job {{ $labels.job }} is under high load.'
+      summary: Instance {{ $labels.instance }} under high load

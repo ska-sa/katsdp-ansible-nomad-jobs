@@ -1,0 +1,156 @@
+job "prometheus" {
+  region = "global"
+  datacenters = ["{{ datacenter_name }}"]
+  type = "service"
+
+  meta {
+    # Increment to force reload, e.g. when only artifacts are updated.
+    version = 2
+  }
+  group "prom" {
+    count = 1
+
+    restart {
+      attempts = 3
+      delay = "20s"
+      mode = "delay"
+    }
+
+    network {
+      port "promhttp" {
+        static = 9090
+        to = 9090
+      }
+      port "alrthttp" {
+        static = 9093
+        to = 9093
+      }
+    }
+
+    task "prometheus" {
+      driver = "docker"
+
+      config {
+        image = "{{ job_vars.prometheus_docker_image }}"
+        force_pull = false
+        ports = ["promhttp"]
+        #volumes = [
+        #  "/home/prometheus/:/etc/prometheus/"
+        #]
+        args = [
+          "--config.file=/local/config/prometheus.yml",
+          "--storage.tsdb.path=/prometheus",
+          "--web.console.libraries=/usr/share/prometheus/console_libraries",
+          "--web.console.templates=/usr/share/prometheus/consoles",
+          "--web.enable-admin-api"
+        ]
+        logging {
+          type = "journald"
+          config {
+            tag = "PROMETHEUS"
+          }
+        }
+      }
+
+      env {
+        HOST_IP = "${attr.unique.network.ip-address}"
+      }
+
+      service {
+        name = "prometheus"
+        address_mode = "driver"
+        tags = [
+          "prometheus-metrics",
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+        ]
+        port = "promhttp"
+
+        check {
+          type = "http"
+          path = "/status"
+          interval = "10s"
+          timeout = "2s"
+          address_mode = "driver"
+        }
+      }
+
+      resources {
+        cpu = 500
+        memory = 2000
+
+      }
+      artifact {
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/prometheus.yml?raw"
+        destination = "local/templates"
+      }
+      template {
+        source = "local/templates/prometheus.yml"
+        destination = "local/config/prometheus.yml"
+        change_mode = "restart"
+      }
+      artifact {
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/alert.rules.yml?raw"
+        destination = "local/config"
+      }
+      artifact {
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/alert.host.rules.yml?raw"
+        destination = "local/config"
+      }
+      artifact {
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/alert.prometheus.rules.yml?raw"
+        destination = "local/config"
+      }
+      artifact {
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/alert.cadvisor.rules.yml?raw"
+        destination = "local/config"
+      }
+    }
+
+    task "alertmanager" {
+      driver = "docker"
+
+      config {
+        image = "{{ job_vars.alertmanager_docker_image }}"
+        force_pull = false
+        ports = ["alrthttp"]
+        logging {
+          type = "journald"
+          config {
+            tag = "ALERTMANAGER"
+          }
+        }
+      }
+
+      service {
+        name = "alertmanager"
+        address_mode = "driver"
+        tags = [
+          "prometheus-metrics",
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+        ]
+        port = "alrthttp"
+
+        check {
+          type = "http"
+          path = "/"
+          interval = "10s"
+          timeout = "2s"
+          address_mode = "driver"
+        }
+      }
+
+      resources {
+        cpu = 500
+        memory = 2000
+      }
+    }
+  }
+}
