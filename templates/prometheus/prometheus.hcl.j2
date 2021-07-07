@@ -84,7 +84,7 @@ job "prometheus" {
 
       }
       artifact {
-        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/prometheus.yml?raw"
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_set }}/prometheus.yml?raw"
         destination = "local/templates"
       }
       template {
@@ -93,19 +93,19 @@ job "prometheus" {
         change_mode = "restart"
       }
       artifact {
-        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/alert.rules.yml?raw"
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_set }}/alert.rules.yml?raw"
         destination = "local/config"
       }
       artifact {
-        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/alert.host.rules.yml?raw"
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_set }}/alert.host.rules.yml?raw"
         destination = "local/config"
       }
       artifact {
-        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/alert.prometheus.rules.yml?raw"
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_set }}/alert.prometheus.rules.yml?raw"
         destination = "local/config"
       }
       artifact {
-        source = "http://127.0.0.1:8500/v1/kv/{{ job_group }}/alert.cadvisor.rules.yml?raw"
+        source = "http://127.0.0.1:8500/v1/kv/{{ job_set }}/alert.cadvisor.rules.yml?raw"
         destination = "local/config"
       }
     }
