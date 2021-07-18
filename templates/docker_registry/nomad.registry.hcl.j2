@@ -1,0 +1,82 @@
+job "docker-registry" {
+  region = "global"
+  datacenters = ["{{ datacenter_name }}"]
+  type = "service"
+  update {
+    stagger      = "30s"
+    max_parallel = 1
+  }
+  group "proxy" {
+    count = 1
+
+    network {
+      port "proxy" {
+	static = 3128
+	to = 3128
+	}
+    }
+    service {
+      port = "proxy"
+      tags = [
+        #"prometheus-metrics",
+        "traefik.enable=true",
+        "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+        "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+      ]
+
+      check {
+        type     = "http"
+        path     = "/"
+        interval = "10s"
+        timeout  = "2s"
+      }
+    }
+
+    task "proxy" {
+      driver = "docker"
+
+      config {
+        image = "{{ job_vars.docker_registry_proxy_image }}"
+        ports = ["proxy"]
+        volumes = [
+          "local/ca:/ca"
+	]
+        # mount {
+      	#   type   = "bind"
+        #   source = "local/ca"
+        #   target = "/ca"
+        #   readonly = true
+   	# }
+      }
+
+      env {
+         ENABLE_MANIFEST_CACHE = "true"
+      }
+
+      resources {
+        cpu    = 500 # MHz
+        memory = 128 # MB
+      }
+
+      # This should be done with vault...!!!
+      template {
+        data        = <<EOM
+{{ job_vars.docker_registry_proxy_ca_crt }}
+EOM
+        destination = "local/ca/ca.crt"
+      }
+      template {
+        data        = <<EOM
+{{ job_vars.docker_registry_proxy_ca_key }}
+EOM
+        destination = "local/ca/ca.key"
+      }
+      template {
+        data        = "{{ job_vars.docker_registry_proxy_ca_srl }}"
+        destination = "local/ca/ca.srl"
+      }
+    }
+  }
+}

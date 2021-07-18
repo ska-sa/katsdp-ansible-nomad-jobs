@@ -1,0 +1,93 @@
+---
+docker_registry_proxy_image: "rpardini/docker-registry-proxy:0.6.2"
+docker_registry_proxy_ca_crt: |
+        -----BEGIN CERTIFICATE-----
+        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
+        -----END CERTIFICATE-----
+docker_registry_proxy_ca_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        Proc-Type: 4,ENCRYPTED
+        DEK-Info: DES-EDE3-CBC,A898D9EAE75A7C81
+
+        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
+        -----END RSA PRIVATE KEY-----
+docker_registry_proxy_ca_srl: "03"
