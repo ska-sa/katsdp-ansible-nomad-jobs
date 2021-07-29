@@ -1,0 +1,27 @@
+---
+# Copy or load a template into Consul K/V.
+
+- name: set short file name
+  set_fact:
+    short_file_name: "{{ file_name | basename | replace('consul.', '') | replace('.j2', '') }}"
+
+- name: set target file and Consul key
+  set_fact:
+    target_file: "{{ deploy_path.rstrip('/') }}/{{  short_file_name }}"
+    consul_kv_name: "{{ job_set }}/{{  short_file_name }}"
+    is_template: "{{ file_name.endswith('.j2') }}"
+
+- name: copy file
+  copy:
+    src: "{{ file_name }}"
+    dest: "{{ target_file }}"
+  when: not is_template
+
+- name: template file
+  template:
+    src: "{{ file_name }}"
+    dest: "{{ target_file }}"
+  when: is_template
+
+- name: load file into K/V value
+  command: "consul kv put {{ consul_kv_name }} @{{ target_file }}"

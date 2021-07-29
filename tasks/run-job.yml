@@ -1,0 +1,17 @@
+---
+# Template each of the nomad job files and call `nomad job run <file name>.hcl`.
+
+- name: set_fact
+  set_fact:
+    target_file: "{{ deploy_path.rstrip('/') }}/{{ file_name | basename | replace('.j2', '') }}"
+
+- name: template nomad job file
+  template:
+    src: "{{ file_name }}"
+    dest: "{{ target_file }}"
+
+- name: load in nomad
+  command: "nomad job run -detach {{ target_file }}"
+  # Note: This is a fire and forget. No waiting for Nomad to prove and apply the
+  # Job since this can take a long time. Nomad apply duration depends on the
+  # deployment options.

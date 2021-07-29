@@ -1,0 +1,5 @@
+---
+
+roles:
+  - name: katsdp-ansible-nomad-jobs
+    src: https://github.com/ska-sa/katsdp-ansible-nomad-jobs.git

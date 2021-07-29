@@ -1,0 +1,7 @@
+---
+
+# Ansible playbook to deploy nomad jobs.
+- hosts: all
+  become: yes
+  roles:
+    - katsdp-ansible-nomad-jobs

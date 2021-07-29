@@ -1,0 +1,10 @@
+galaxy_info:
+  version: "0.1.0"
+  role_name: 'katsdp-ansible-nomad-jobs'
+  author: "Martin Slabber <mnartin@ska.ac.za>"
+  description: Templated Nomad Jobs
+  company: SARAO
+  license: BSD-3-Clause
+  min_ansible_version: 2.10
+  galaxy_tags: ['nomad', 'consul']
+dependencies: []
